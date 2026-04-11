@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1a7bf6b1e83f458390e5f5df921108cf, type: 3}
   m_Name: PistolAmmo
   m_EditorClassIdentifier: 
-  Id: PistolAmmo
-  Weight: 0.01
-  MaxStack: 50
-  Icon: {fileID: 21300000, guid: 4ba1228c1e6b242928bf8a131addf0ca, type: 3}
+  _id: PistolAmmo
+  _weight: 0.01
+  _maxStack: 50
+  _icon: {fileID: 21300000, guid: 4ba1228c1e6b242928bf8a131addf0ca, type: 3}

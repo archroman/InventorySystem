@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e0ba0016c5834a788d6dac33a27f4ed7, type: 3}
   m_Name: Jacket
   m_EditorClassIdentifier: 
-  Id: Jacket
-  Weight: 0.8
-  MaxStack: 1
-  Icon: {fileID: 21300000, guid: cdad9e116457e4420a6cbcdbb52cc6be, type: 3}
-  Protection: 3
+  _id: Jacket
+  _weight: 0.8
+  _maxStack: 1
+  _icon: {fileID: 21300000, guid: cdad9e116457e4420a6cbcdbb52cc6be, type: 3}
+  _protection: 3

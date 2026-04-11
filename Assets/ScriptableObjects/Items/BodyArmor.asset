@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e0ba0016c5834a788d6dac33a27f4ed7, type: 3}
   m_Name: BodyArmor
   m_EditorClassIdentifier: 
-  Id: BodyArmor
-  Weight: 10
-  MaxStack: 1
-  Icon: {fileID: 21300000, guid: 61268e53e389d46f98a94853b00cdc7d, type: 3}
-  Protection: 10
+  _id: BodyArmor
+  _weight: 10
+  _maxStack: 1
+  _icon: {fileID: 21300000, guid: 61268e53e389d46f98a94853b00cdc7d, type: 3}
+  _protection: 10

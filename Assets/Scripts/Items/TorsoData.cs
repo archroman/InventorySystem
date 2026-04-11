@@ -5,6 +5,8 @@ namespace Items
     [CreateAssetMenu(menuName = "Items/Torso")]
     internal sealed class TorsoData : ItemData
     {
-        public int Protection;
+        [SerializeField] private int _protection;
+        
+        public int Protection => _protection;
     }
 }

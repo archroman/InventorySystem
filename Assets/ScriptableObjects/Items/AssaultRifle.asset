@@ -12,9 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f538f05d17f54179b537d1d073757d9d, type: 3}
   m_Name: AssaultRifle
   m_EditorClassIdentifier: 
-  Id: AssaultRifle
-  Weight: 5
-  MaxStack: 1
-  Icon: {fileID: 21300000, guid: 687a43072d46d409ca0962ca57221c34, type: 3}
-  Damage: 10
-  AmmoId: PistolAmmo
+  _id: AssaultRifle
+  _weight: 5
+  _maxStack: 1
+  _icon: {fileID: 21300000, guid: 687a43072d46d409ca0962ca57221c34, type: 3}
+  _damage: 20
+  _ammoId: AssaultRifleAmmo
