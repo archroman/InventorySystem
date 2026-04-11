@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Items.DataScripts
+namespace Items
 {
     [CreateAssetMenu(menuName = "Items/Torso")]
     internal sealed class TorsoData : ItemData

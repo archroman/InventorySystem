@@ -1,4 +1,4 @@
-namespace Items.DataScripts
+namespace Items
 {
     public enum ItemType
     {

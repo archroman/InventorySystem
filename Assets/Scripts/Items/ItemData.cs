@@ -1,12 +1,12 @@
 using UnityEngine;
 
-namespace Items.DataScripts
+namespace Items
 {
     public class ItemData : ScriptableObject
     {
         public string Id;
-        public ItemType Type;
         public float Weight;
         public int MaxStack;
+        public Sprite Icon;
     }
 }

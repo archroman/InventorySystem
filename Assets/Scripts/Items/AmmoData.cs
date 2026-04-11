@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Items.DataScripts
+namespace Items
 {
     [CreateAssetMenu(menuName = "Items/Ammo")]
     internal sealed class AmmoData : ItemData
