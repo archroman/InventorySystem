@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace PlayerCurrency
 {
-    public sealed class CurrencyService : MonoBehaviour
+    internal sealed class CurrencyService : MonoBehaviour
     {
         [SerializeField] private int _coins;
 

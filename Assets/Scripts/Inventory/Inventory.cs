@@ -5,10 +5,9 @@ using UnityEngine;
 
 namespace Inventory
 {
-    public class Inventory : MonoBehaviour
+    internal sealed class Inventory : MonoBehaviour
     {
         [SerializeField] private List<InventorySlot> _slots;
-
         [SerializeField] private int _startUnlockedSlots = 15;
         [SerializeField] private int[] _slotCosts;
 
@@ -25,42 +24,27 @@ namespace Inventory
         public bool TryUnlockSlot(int index, CurrencyService currency)
         {
             if (index < 0 || index >= _slots.Count)
-            {
-                Debug.LogError("Неверный индекс слота");
                 return false;
-            }
 
             var slot = _slots[index];
 
             if (slot.IsUnlocked)
-            {
-                Debug.Log("Слот уже открыт");
                 return false;
-            }
 
             if (index > 0 && !_slots[index - 1].IsUnlocked)
-            {
-                Debug.Log("Сначала открой предыдущий слот");
                 return false;
-            }
 
             if (index >= _slotCosts.Length)
-            {
-                Debug.LogError("Нет стоимости для этого слота");
                 return false;
-            }
 
             int cost = _slotCosts[index];
 
             if (!currency.TrySpend(cost))
-            {
-                Debug.Log("Недостаточно монет");
                 return false;
-            }
 
             slot.IsUnlocked = true;
 
-            Debug.Log($"Слот {index} открыт за {cost} монет");
+            Debug.Log($"Slot {index} unlocked");
             return true;
         }
 
@@ -68,44 +52,48 @@ namespace Inventory
         {
             foreach (var slot in _slots)
             {
+                if (!slot.IsUnlocked || slot.IsEmpty) continue;
+                if (slot.Stack.Item.Id != item.Id) continue;
+                if (slot.Stack.IsFull) continue;
+
+                slot.Stack.Count++;
+                return true;
+            }
+
+            foreach (var slot in _slots)
+            {
                 if (!slot.IsUnlocked || !slot.IsEmpty) continue;
 
-                slot.Stack = new ItemStack()
+                slot.Stack = new ItemStack
                 {
                     Item = item,
                     Count = 1
                 };
 
-                Debug.Log($"Добавлено {item.name} в слот");
                 return true;
             }
 
-            Debug.Log("Инвентарь полон");
             return false;
         }
 
         public bool TryAddAmmo(ItemData ammo, int amount)
         {
-            if (!(ammo is AmmoData))
-            {
-                Debug.Log("Ошибка! Это не патроны");
+            if (ammo is not AmmoData)
                 return false;
-            }
 
             int remaining = amount;
 
             foreach (var slot in _slots)
             {
                 if (!slot.IsUnlocked || slot.IsEmpty) continue;
-                if (slot.Stack.Item != ammo) continue;
+                if (slot.Stack.Item.Id != ammo.Id) continue;
+                if (slot.Stack.IsFull) continue;
 
                 int canAdd = ammo.MaxStack - slot.Stack.Count;
                 int toAdd = Mathf.Min(canAdd, remaining);
 
                 slot.Stack.Count += toAdd;
                 remaining -= toAdd;
-
-                Debug.Log($"Добавлено ({toAdd}) {ammo.name} в слот");
 
                 if (remaining <= 0)
                     return true;
@@ -117,7 +105,7 @@ namespace Inventory
 
                 int toAdd = Mathf.Min(ammo.MaxStack, remaining);
 
-                slot.Stack = new ItemStack()
+                slot.Stack = new ItemStack
                 {
                     Item = ammo,
                     Count = toAdd
@@ -125,29 +113,21 @@ namespace Inventory
 
                 remaining -= toAdd;
 
-                Debug.Log($"Добавлено ({toAdd}) {ammo.name} в слот");
-
                 if (remaining <= 0)
                     return true;
             }
 
-            Debug.Log("Инвентарь полон");
             return false;
         }
 
         public bool RemoveRandomItem()
         {
-            var availableSlots = _slots.FindAll(s => s.IsUnlocked && !s.IsEmpty);
+            var available = _slots.FindAll(s => s.IsUnlocked && !s.IsEmpty);
 
-            if (availableSlots.Count == 0)
-            {
-                Debug.Log("Инвентарь пуст");
+            if (available.Count == 0)
                 return false;
-            }
 
-            var slot = availableSlots[Random.Range(0, availableSlots.Count)];
-
-            Debug.Log($"Удалено ({slot.Stack.Count}) {slot.Stack.Item.name}");
+            var slot = available[Random.Range(0, available.Count)];
 
             slot.Stack = null;
             return true;
@@ -155,7 +135,7 @@ namespace Inventory
 
         public float GetTotalWeight()
         {
-            float total = 0f;
+            float total = 0;
 
             foreach (var slot in _slots)
             {
@@ -165,6 +145,14 @@ namespace Inventory
             }
 
             return total;
+        }
+        
+        public int GetSlotCost(int index)
+        {
+            if (index < 0 || index >= _slotCosts.Length)
+                return 0;
+
+            return _slotCosts[index];
         }
     }
 }

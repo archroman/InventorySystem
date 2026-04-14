@@ -1,7 +1,7 @@
 namespace Inventory
 {
     [System.Serializable]
-    public class InventorySlot
+    internal sealed class InventorySlot
     {
         public bool IsUnlocked;
         public ItemStack Stack;

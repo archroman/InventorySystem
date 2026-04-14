@@ -3,7 +3,7 @@ using Items;
 namespace Inventory
 {
     [System.Serializable]
-    public class ItemStack
+    internal sealed class ItemStack
     {
         public ItemData Item;
         public int Count;
