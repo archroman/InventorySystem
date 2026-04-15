@@ -120,6 +120,50 @@ namespace Inventory
             return false;
         }
 
+        public bool TryShoot()
+        {
+            WeaponData weapon = null;
+
+            foreach (var slot in _slots)
+            {
+                if (!slot.IsUnlocked || slot.IsEmpty) continue;
+
+                if (slot.Stack.Item is WeaponData w)
+                {
+                    weapon = w;
+                    break;
+                }
+            }
+
+            if (weapon == null)
+            {
+                Debug.Log("В инвентаре нет оружия");
+                return false;
+            }
+
+            foreach (var slot in _slots)
+            {
+                if (!slot.IsUnlocked || slot.IsEmpty) continue;
+
+                if (slot.Stack.Item is AmmoData ammo && ammo.Id == weapon.AmmoId)
+                {
+                    slot.Stack.Count--;
+                    Debug.Log(
+                        $"Выстрел из {weapon.name}, урон: {weapon.Damage}, осталось патронов: {slot.Stack.Count}");
+
+                    if (slot.Stack.Count <= 0)
+                    {
+                        slot.Stack = null;
+                    }
+
+                    return true;
+                }
+            }
+
+            Debug.Log("В инвентаре нет подходящих патронов");
+            return false;
+        }
+
         public bool RemoveRandomItem()
         {
             var available = _slots.FindAll(s => s.IsUnlocked && !s.IsEmpty);
@@ -146,7 +190,7 @@ namespace Inventory
 
             return total;
         }
-        
+
         public int GetSlotCost(int index)
         {
             if (index < 0 || index >= _slotCosts.Length)
