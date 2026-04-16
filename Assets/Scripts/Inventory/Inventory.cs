@@ -2,6 +2,8 @@ using System.Collections.Generic;
 using Items;
 using PlayerCurrency;
 using UnityEngine;
+using System;
+using Random = UnityEngine.Random;
 
 namespace Inventory
 {
@@ -13,12 +15,22 @@ namespace Inventory
 
         public List<InventorySlot> Slots => _slots;
 
+        public event Action OnInventoryChanged;
+
         private void Awake()
         {
             for (int i = 0; i < _slots.Count; i++)
             {
                 _slots[i].IsUnlocked = i < _startUnlockedSlots;
             }
+        }
+
+        private bool Finish(bool changed)
+        {
+            if (changed)
+                OnInventoryChanged?.Invoke();
+
+            return changed;
         }
 
         public bool TryUnlockSlot(int index, CurrencyService currency)
@@ -37,19 +49,19 @@ namespace Inventory
             if (index >= _slotCosts.Length)
                 return false;
 
-            int cost = _slotCosts[index];
-
-            if (!currency.TrySpend(cost))
+            if (!currency.TrySpend(_slotCosts[index]))
                 return false;
 
             slot.IsUnlocked = true;
 
-            Debug.Log($"Slot {index} unlocked");
-            return true;
+            Debug.Log($"Слот {index} разблокирован");
+            return Finish(true);
         }
 
         public bool TryAddItem(ItemData item)
         {
+            bool added = false;
+
             foreach (var slot in _slots)
             {
                 if (!slot.IsUnlocked || slot.IsEmpty) continue;
@@ -57,23 +69,28 @@ namespace Inventory
                 if (slot.Stack.IsFull) continue;
 
                 slot.Stack.Count++;
-                return true;
+                added = true;
+                break;
             }
 
-            foreach (var slot in _slots)
+            if (!added)
             {
-                if (!slot.IsUnlocked || !slot.IsEmpty) continue;
-
-                slot.Stack = new ItemStack
+                foreach (var slot in _slots)
                 {
-                    Item = item,
-                    Count = 1
-                };
+                    if (!slot.IsUnlocked || !slot.IsEmpty) continue;
 
-                return true;
+                    slot.Stack = new ItemStack
+                    {
+                        Item = item,
+                        Count = 1
+                    };
+
+                    added = true;
+                    break;
+                }
             }
 
-            return false;
+            return Finish(added);
         }
 
         public bool TryAddAmmo(ItemData ammo, int amount)
@@ -82,6 +99,7 @@ namespace Inventory
                 return false;
 
             int remaining = amount;
+            bool added = false;
 
             foreach (var slot in _slots)
             {
@@ -89,14 +107,14 @@ namespace Inventory
                 if (slot.Stack.Item.Id != ammo.Id) continue;
                 if (slot.Stack.IsFull) continue;
 
-                int canAdd = ammo.MaxStack - slot.Stack.Count;
-                int toAdd = Mathf.Min(canAdd, remaining);
+                int toAdd = Mathf.Min(ammo.MaxStack - slot.Stack.Count, remaining);
 
                 slot.Stack.Count += toAdd;
                 remaining -= toAdd;
+                added = true;
 
                 if (remaining <= 0)
-                    return true;
+                    break;
             }
 
             foreach (var slot in _slots)
@@ -112,56 +130,51 @@ namespace Inventory
                 };
 
                 remaining -= toAdd;
+                added = true;
 
                 if (remaining <= 0)
-                    return true;
+                    break;
             }
 
-            return false;
+            return Finish(added);
         }
 
         public bool TryShoot()
         {
-            WeaponData weapon = null;
+            bool shot = false;
 
-            foreach (var slot in _slots)
+            foreach (var weaponSlot in _slots)
             {
-                if (!slot.IsUnlocked || slot.IsEmpty) continue;
+                if (!weaponSlot.IsUnlocked || weaponSlot.IsEmpty) continue;
+                if (weaponSlot.Stack.Item is not WeaponData weapon) continue;
 
-                if (slot.Stack.Item is WeaponData w)
+                foreach (var ammoSlot in _slots)
                 {
-                    weapon = w;
-                    break;
+                    if (!ammoSlot.IsUnlocked || ammoSlot.IsEmpty) continue;
+
+                    if (ammoSlot.Stack.Item is AmmoData ammo && ammo.Id == weapon.AmmoId)
+                    {
+                        ammoSlot.Stack.Count--;
+
+                        if (ammoSlot.Stack.Count <= 0)
+                            ammoSlot.Stack.Clear();
+
+                        shot = true;
+                        break;
+                    }
                 }
+
+                if (shot)
+                    break;
             }
 
-            if (weapon == null)
+            if (!shot)
             {
-                Debug.Log("В инвентаре нет оружия");
+                Debug.Log("Нет оружия с подходящими патронами");
                 return false;
             }
 
-            foreach (var slot in _slots)
-            {
-                if (!slot.IsUnlocked || slot.IsEmpty) continue;
-
-                if (slot.Stack.Item is AmmoData ammo && ammo.Id == weapon.AmmoId)
-                {
-                    slot.Stack.Count--;
-                    Debug.Log(
-                        $"Выстрел из {weapon.name}, урон: {weapon.Damage}, осталось патронов: {slot.Stack.Count}");
-
-                    if (slot.Stack.Count <= 0)
-                    {
-                        slot.Stack = null;
-                    }
-
-                    return true;
-                }
-            }
-
-            Debug.Log("В инвентаре нет подходящих патронов");
-            return false;
+            return Finish(true);
         }
 
         public bool RemoveRandomItem()
@@ -172,9 +185,9 @@ namespace Inventory
                 return false;
 
             var slot = available[Random.Range(0, available.Count)];
-
-            slot.Stack = null;
-            return true;
+            slot.Stack.Clear();
+            
+            return Finish(true);
         }
 
         public float GetTotalWeight()

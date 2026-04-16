@@ -13,6 +13,18 @@ namespace Inventory.UI
 
         private List<InventorySlotView> _views = new();
 
+        private bool _initialized;
+
+        private void OnEnable()
+        {
+            _inventory.OnInventoryChanged += Refresh;
+        }
+
+        private void OnDisable()
+        {
+            _inventory.OnInventoryChanged -= Refresh;
+        }
+
         private void Start()
         {
             CreateSlots();
@@ -21,6 +33,11 @@ namespace Inventory.UI
 
         private void CreateSlots()
         {
+            if (_initialized)
+                return;
+
+            _initialized = true;
+
             for (int i = 0; i < _inventory.Slots.Count; i++)
             {
                 int index = i;
@@ -36,9 +53,14 @@ namespace Inventory.UI
             }
         }
 
-        public void Refresh()
+        private void Refresh()
         {
-            for (int i = 0; i < _inventory.Slots.Count; i++)
+            if (_views.Count != _inventory.Slots.Count)
+            {
+                return;
+            }
+
+            for (int i = 0; i < _views.Count; i++)
             {
                 var slot = _inventory.Slots[i];
                 var view = _views[i];

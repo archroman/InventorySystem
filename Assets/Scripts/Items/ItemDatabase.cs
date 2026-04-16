@@ -1,6 +1,6 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
-using UnityEngine.Serialization;
 
 namespace Items
 {
@@ -9,21 +9,49 @@ namespace Items
     {
         [SerializeField] private List<ItemData> _items;
 
+        private List<AmmoData> _ammo;
+        private List<ItemData> _equipment;
+
+        private void OnEnable()
+        {
+            _ammo = _items.OfType<AmmoData>().ToList();
+
+            _equipment = _items
+                .Where(i => i is WeaponData || i is HeadData || i is TorsoData)
+                .ToList();
+        }
+
         public ItemData GetRandomItem()
         {
+            if (_items == null || _items.Count == 0)
+            {
+                Debug.LogWarning("Items list is empty");
+                return null;
+            }
+
             return _items[Random.Range(0, _items.Count)];
         }
 
         public ItemData GetRandomAmmo()
         {
-            var ammo = _items.FindAll(i => i is AmmoData);
-            return ammo[Random.Range(0, ammo.Count)];
+            if (_ammo == null || _ammo.Count == 0)
+            {
+                Debug.LogWarning("Ammo list is empty");
+                return null;
+            }
+
+            return _ammo[Random.Range(0, _ammo.Count)];
         }
 
         public ItemData GetRandomEquipment()
         {
-            var list = _items.FindAll(i => i is WeaponData || i is HeadData || i is TorsoData);
-            return list[Random.Range(0, list.Count)];
+            if (_equipment == null || _equipment.Count == 0)
+            {
+                Debug.LogWarning("Equipment list is empty");
+                return null;
+            }
+
+            return _equipment[Random.Range(0, _equipment.Count)];
         }
     }
 }

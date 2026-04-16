@@ -1,16 +1,21 @@
-using System;
 using Items;
 using PlayerCurrency;
 using TMPro;
 using UnityEngine;
 using Random = UnityEngine.Random;
+using Inventory.UI.Utils;
 
 namespace Inventory.UI
 {
     internal sealed class InventoryControllerUI : MonoBehaviour
     {
+        private const int MinCoinsAddAmount = 9;
+        private const int MaxCoinsAddAmount = 100;
+        
+        private const int MinAmmoAddAmount = 10;
+        private const int MaxAmmoAddAmount = 31;
+        
         [SerializeField] private Inventory _inventory;
-        [SerializeField] private InventoryView _view;
         [SerializeField] private CurrencyService _currency;
         [SerializeField] private ItemDatabase _database;
 
@@ -20,11 +25,13 @@ namespace Inventory.UI
         private void OnEnable()
         {
             _currency.OnCoinsChanged += UpdateCoins;
+            _inventory.OnInventoryChanged += UpdateWeight;
         }
 
         private void OnDisable()
         {
             _currency.OnCoinsChanged -= UpdateCoins;
+            _inventory.OnInventoryChanged -= UpdateWeight;
         }
 
         private void Start()
@@ -35,61 +42,36 @@ namespace Inventory.UI
 
         public void AddCoins()
         {
-            int amount = Random.Range(9, 100);
+            int amount = Random.Range(MinCoinsAddAmount, MaxCoinsAddAmount);
             _currency.AddCoins(amount);
-
-            Debug.Log($"Добавлено ({amount}) монет");
         }
 
         public void AddItem()
         {
             var item = _database.GetRandomEquipment();
-
-            if (_inventory.TryAddItem(item))
-            {
-                Debug.Log($"Добавлено {item.name}");
-            }
-
-            UpdateWeight();
-            _view.Refresh();
+            _inventory.TryAddItem(item);
         }
 
         public void AddAmmo()
         {
             var ammo = _database.GetRandomAmmo();
-            int amount = Random.Range(10, 31);
-
-            if (_inventory.TryAddAmmo(ammo, amount))
-            {
-                Debug.Log($"Добавлено ({amount}) {ammo.name}");
-            }
-
-            UpdateWeight();
-            _view.Refresh();
+            int amount = Random.Range(MinAmmoAddAmount, MaxAmmoAddAmount);
+            _inventory.TryAddAmmo(ammo, amount);
         }
 
         public void RemoveItem()
         {
-            if (_inventory.RemoveRandomItem())
-            {
-                Debug.Log("Удалён предмет");
-            }
-
-            UpdateWeight();
-            _view.Refresh();
+            _inventory.RemoveRandomItem();
         }
 
         public void Shoot()
         {
             _inventory.TryShoot();
-
-            UpdateWeight();
-            _view.Refresh();
         }
 
         private void UpdateCoins(int coins)
         {
-            _coinsText.text = $"Монеты: {coins}";
+            _coinsText.text = $"Монеты: {NumberFormatter.Format(coins)}";
         }
 
         private void UpdateWeight()
